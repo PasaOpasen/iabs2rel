@@ -16,6 +16,14 @@ def mkdir_of_file(file_path: PathLike):
     mkdir(Path(file_path).parent)
 
 
+def rmdir(path: PathLike):
+    """rm dir"""
+    if os.path.exists(path):
+        assert os.path.isdir(path), path
+        import shutil
+        shutil.rmtree(path)
+
+
 def read_text(path: PathLike, encoding: str = 'utf-8') -> str:
     return Path(path).read_text(encoding=encoding)
 

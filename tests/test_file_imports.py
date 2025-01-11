@@ -1,5 +1,4 @@
 
-import os
 from pathlib import Path
 import pytest
 
@@ -8,6 +7,7 @@ from iabs2rel.utils import read_text, read_json, write_text
 from iabs2rel.main import find_imports, IAbs2Rel
 
 from tests.config import DATA_DIR, PROJECT_DIR
+from tests.utils import load_kwargs
 
 
 def test_find_imports():
@@ -38,18 +38,7 @@ _arg_files = list(
     'arg_file', _arg_files
 )
 def test_file_abs2rel(arg_file: PathLike):
-
-    dct = read_json(arg_file)
-
-    kwargs = dct['obj']
-    func = dct['func']
-
-    # resolve paths
-    for k, v in list(kwargs.items()):
-        if v and k.endswith('paths'):
-            kwargs[k] = [
-                DATA_DIR / vv for vv in v
-            ]
+    kwargs, func = load_kwargs(arg_file)
 
     resolver = IAbs2Rel(
         python_path=[PROJECT_DIR], **kwargs
