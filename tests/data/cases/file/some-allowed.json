@@ -1,5 +1,9 @@
 {
-    "max_depth": -1,
-    "allowed_paths": ["./input/simple.py", "./input/p"],
-    "denied_paths": []
+    "func": {
+        "max_depth": -1
+    },
+    "obj": {
+        "allowed_paths": ["./input/simple.py", "./input/p"],
+        "denied_paths": []
+    }
 }

@@ -1,5 +1,9 @@
 {
-    "max_depth": -1,
-    "allowed_paths": ["./input/package"],
-    "denied_paths": ["./input/package/file1.py"]
+    "func": {
+        "max_depth": -1
+    },
+    "obj": {
+        "allowed_paths": ["./input/package"],
+        "denied_paths": ["./input/package/file1.py"]
+    }
 }

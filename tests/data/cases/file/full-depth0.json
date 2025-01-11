@@ -1,5 +1,9 @@
 {
-    "max_depth": 0,
-    "allowed_paths": [],
-    "denied_paths": []
+    "func": {
+        "max_depth": 0
+    },
+    "obj": {
+        "allowed_paths": [],
+        "denied_paths": []
+    }
 }

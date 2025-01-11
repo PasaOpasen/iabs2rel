@@ -5,7 +5,7 @@ import pytest
 
 from iabs2rel.aliases import PathLike
 from iabs2rel.utils import read_text, read_json, write_text
-from iabs2rel.main import find_imports, file_abs2rel
+from iabs2rel.main import find_imports, IAbs2Rel
 
 from tests.config import DATA_DIR, PROJECT_DIR
 
@@ -39,7 +39,10 @@ _arg_files = list(
 )
 def test_file_abs2rel(arg_file: PathLike):
 
-    kwargs = read_json(arg_file)
+    dct = read_json(arg_file)
+
+    kwargs = dct['obj']
+    func = dct['func']
 
     # resolve paths
     for k, v in list(kwargs.items()):
@@ -48,10 +51,12 @@ def test_file_abs2rel(arg_file: PathLike):
                 DATA_DIR / vv for vv in v
             ]
 
-    text = file_abs2rel(
-        file=DATA_DIR / 'input/p/simple2.py',
-        python_path=[PROJECT_DIR],
-        **kwargs
+    resolver = IAbs2Rel(
+        python_path=[PROJECT_DIR], **kwargs
+    )
+
+    text = resolver.file_abs2rel(
+        file=DATA_DIR / 'input/p/simple2.py', **func
     )
 
     target_file = DATA_DIR / 'output' / 'simple2' / (Path(arg_file).stem + '.py')
