@@ -55,10 +55,4 @@ def add_common_args(parser: argparse.ArgumentParser):
         )
     )
 
-    parser.add_argument(
-        '--dry-run', '-n',
-        action='store_true',
-        help='Whether to run without performing file processing operations'
-    )
-
 
