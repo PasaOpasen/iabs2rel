@@ -1,13 +1,20 @@
 
-from typing import Iterable, Sequence, Optional, List, Set
+from typing import Iterable, Sequence, Optional, List, Set, Union, Tuple
 
 import os
+import sys
 from pathlib import Path
 import re
+import logging
 
 from .aliases import ImportMatch, PathLike
 from .utils import read_text, replace_string_parts, get_relative_path, is_allowed_path
 
+logger = logging.getLogger('iabs2rel')
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter('%(levelname)s -- %(message)s'))
+logger.handlers.append(handler)
+logger.setLevel('DEBUG')
 
 _FILE_END = '.py'
 _PACKAGE_END = '/__init__.py'
@@ -94,27 +101,55 @@ def _abs2rel(
     return i_new
 
 
+def _filter_paths(
+    paths: Optional[Iterable[PathLike]] = None,
+    return_set: bool = False,
+    allow_empty: bool = False,
+    label: str = ''
+) -> Union[List[Path], Set[str]]:
+    """checks input paths for existence and filters them"""
+
+    _paths = [
+        t.absolute().resolve()
+        for p in (paths or [])
+        if (t := Path(p)).exists()
+    ]
+    if not _paths and (not allow_empty and paths):  # if all paths are filtered but is not okay
+        raise ValueError(
+            f"none of {label} paths exists (working directory = {os.getcwd()}): {[str(p) for p in paths]}"
+        )
+
+    if not return_set:
+        return _paths
+    return set(map(str, _paths))
+
+
+def _filter_kwargs_paths(
+    python_path: Optional[Iterable[PathLike]] = None,
+    allowed_paths: Optional[Set[PathLike]] = None,
+    denied_paths: Optional[Set[PathLike]] = None,
+) -> Tuple[List[Path], Set[str], Set[str]]:
+    return (
+        _filter_paths(python_path, label='PYTHON_PATH'),
+        _filter_paths(allowed_paths, return_set=True, label='allowed paths'),
+        _filter_paths(denied_paths, allow_empty=True, return_set=True, label='denied paths'),
+    )
+
+
 def file_abs2rel(
     file: PathLike,
-    python_path: Optional[Iterable[PathLike]] = None,
     max_depth: int = 0,
+    python_path: Optional[Iterable[PathLike]] = None,
     allowed_paths: Optional[Set[PathLike]] = None,
-    denied_paths: Optional[Set[PathLike]] = None
+    denied_paths: Optional[Set[PathLike]] = None,
+    _filter_paths: bool = True
 ) -> str:
 
     if not python_path:
         python_path = [os.getcwd()]
 
-    python_path, allowed_paths, denied_paths = (
-        [
-            t.absolute().resolve()
-            for p in (paths or [])
-            if (t := Path(p)).exists()
-        ]
-        for paths in (python_path, allowed_paths, denied_paths)
-    )
-    allowed_paths, denied_paths = (
-        set(map(str, paths)) for paths in (allowed_paths, denied_paths)
+    python_path, allowed_paths, denied_paths = _filter_kwargs_paths(
+        python_path, allowed_paths, denied_paths
     )
 
     file = Path(file)
