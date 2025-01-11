@@ -148,6 +148,11 @@ class IAbs2Rel:
             return i
 
         rel_path = get_relative_path(dest, relative_to=source.parent)
+        if rel_path == '__init__.py':
+            self._verbose(
+                f"will not resolve {i} as .", 'DEBUG'
+            )
+            return i
 
         if rel_path.endswith(_PACKAGE_END):
             rel_path = rel_path[:-len(_PACKAGE_END)]

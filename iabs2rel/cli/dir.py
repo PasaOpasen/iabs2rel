@@ -6,8 +6,8 @@ from typing import Optional, Sequence
 import sys
 import argparse
 
-from .utils import add_common_args
-from ..main import IAbs2Rel
+from iabs2rel.cli.utils import add_common_args
+from iabs2rel.main import IAbs2Rel
 
 
 #region CLI
