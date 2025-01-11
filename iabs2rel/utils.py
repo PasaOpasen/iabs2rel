@@ -1,5 +1,5 @@
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Set, Optional, Any
 
 import os
 from pathlib import Path
@@ -16,12 +16,19 @@ def mkdir_of_file(file_path: PathLike):
     mkdir(Path(file_path).parent)
 
 
-def read_text(result_path: PathLike, encoding: str = 'utf-8'):
-    return Path(result_path).read_text(encoding=encoding)
+def read_text(path: PathLike, encoding: str = 'utf-8') -> str:
+    return Path(path).read_text(encoding=encoding)
 
 
-def write_text(result_path: PathLike, text: str, encoding: str = 'utf-8'):
-    Path(result_path).write_text(text, encoding=encoding)
+def read_json(path: PathLike, encoding: str = 'utf-8') -> Dict[str, Any]:
+    import json
+    t = read_text(path, encoding)
+    return json.loads(t)
+
+
+def write_text(path: PathLike, text: str, encoding: str = 'utf-8'):
+    mkdir_of_file(path)
+    Path(path).write_text(text, encoding=encoding)
 
 
 def replace_string_parts(string: str, indexes_to_part: Dict[Tuple[int, int], str]) -> str:
@@ -74,3 +81,46 @@ def isin(path: PathLike, parent: PathLike) -> bool:
     >>> assert not isin('a/b/c', 't/b')
     """
     return not get_relative_path(path, parent).startswith('..')
+
+
+def is_allowed_path(
+    path: PathLike,
+    allowed_paths: Optional[Set[str]] = None,
+    forbidden_paths: Optional[Set[str]] = None
+) -> bool:
+    """
+    checks whether the path is allowed
+    Args:
+        path:
+        allowed_paths: sequence of allowed paths, empty means any path is allowed except forbidden
+        forbidden_paths: sequence of forbidden paths; if the path is in any of these -- it is not allowed
+
+    Returns:
+
+    """
+
+    path = str(Path(path).absolute().resolve())
+
+    if forbidden_paths:
+        if path in forbidden_paths:
+            return False
+        if any(isin(path, p) for p in forbidden_paths):
+            return False
+
+    if not allowed_paths:  # any path is allowed
+        return True
+
+    if path in allowed_paths:
+        return True
+
+    if any(isin(path, p) for p in allowed_paths):
+        return True
+
+    return False
+
+
+
+
+
+
+
