@@ -56,7 +56,7 @@ def test_file_abs2rel(arg_file: PathLike):
 
     target_file = DATA_DIR / 'output' / 'simple2' / (Path(arg_file).stem + '.py')
 
-    write_text(target_file, text)
+    # write_text(target_file, text)
 
     assert read_text(target_file) == text
 

@@ -31,7 +31,7 @@ def _find_import_source(
     i: str,
     python_path: Sequence[Path],
     allowed_paths: Optional[Set[str]] = None,
-    forbidden_paths: Optional[Set[str]] = None
+    denied_paths: Optional[Set[str]] = None
 ) -> Optional[Path]:
     """
     searches for the source file for the import
@@ -39,7 +39,7 @@ def _find_import_source(
         i: import string
         python_path: sequence of start paths to check
         allowed_paths:
-        forbidden_paths:
+        denied_paths:
 
     Returns:
         import source file if found else None
@@ -55,7 +55,7 @@ def _find_import_source(
         for s in (s_file, s_dir):
             loc = p / s
             if loc.exists():
-                return loc if is_allowed_path(loc, allowed_paths, forbidden_paths) else None
+                return loc if is_allowed_path(loc, allowed_paths, denied_paths) else None
 
 
 def _abs2rel(
@@ -64,14 +64,14 @@ def _abs2rel(
     python_path: Sequence[Path],
     max_depth: int = 0,
     allowed_paths: Optional[Set[str]] = None,
-    forbidden_paths: Optional[Set[str]] = None
+    denied_paths: Optional[Set[str]] = None
 ) -> str:
     """resolves import from the source file"""
     if i.startswith('.'):  # already relative
         return i
 
     try:
-        dest = _find_import_source(i, python_path, allowed_paths=allowed_paths, forbidden_paths=forbidden_paths)
+        dest = _find_import_source(i, python_path, allowed_paths=allowed_paths, denied_paths=denied_paths)
         if not dest:  # cannot be resolved
             return i
     except PermissionError:
@@ -99,22 +99,22 @@ def file_abs2rel(
     python_path: Optional[Iterable[PathLike]] = None,
     max_depth: int = 0,
     allowed_paths: Optional[Set[PathLike]] = None,
-    forbidden_paths: Optional[Set[PathLike]] = None
+    denied_paths: Optional[Set[PathLike]] = None
 ) -> str:
 
     if not python_path:
         python_path = [os.getcwd()]
 
-    python_path, allowed_paths, forbidden_paths = (
+    python_path, allowed_paths, denied_paths = (
         [
             t.absolute().resolve()
             for p in (paths or [])
             if (t := Path(p)).exists()
         ]
-        for paths in (python_path, allowed_paths, forbidden_paths)
+        for paths in (python_path, allowed_paths, denied_paths)
     )
-    allowed_paths, forbidden_paths = (
-        set(map(str, paths)) for paths in (allowed_paths, forbidden_paths)
+    allowed_paths, denied_paths = (
+        set(map(str, paths)) for paths in (allowed_paths, denied_paths)
     )
 
     file = Path(file)
@@ -125,7 +125,7 @@ def file_abs2rel(
     for i, (s, e) in find_imports(text):
         i_rel = _abs2rel(
             i, file, python_path, max_depth=max_depth,
-            allowed_paths=allowed_paths, forbidden_paths=forbidden_paths
+            allowed_paths=allowed_paths, denied_paths=denied_paths
         )
         if i_rel != i:
             replaces.append(

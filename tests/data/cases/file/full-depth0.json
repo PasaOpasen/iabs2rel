@@ -1,5 +1,5 @@
 {
     "max_depth": 0,
     "allowed_paths": [],
-    "forbidden_paths": []
+    "denied_paths": []
 }

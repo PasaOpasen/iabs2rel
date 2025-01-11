@@ -86,14 +86,14 @@ def isin(path: PathLike, parent: PathLike) -> bool:
 def is_allowed_path(
     path: PathLike,
     allowed_paths: Optional[Set[str]] = None,
-    forbidden_paths: Optional[Set[str]] = None
+    denied_paths: Optional[Set[str]] = None
 ) -> bool:
     """
     checks whether the path is allowed
     Args:
         path:
         allowed_paths: sequence of allowed paths, empty means any path is allowed except forbidden
-        forbidden_paths: sequence of forbidden paths; if the path is in any of these -- it is not allowed
+        denied_paths: sequence of forbidden paths; if the path is in any of these -- it is not allowed
 
     Returns:
 
@@ -101,10 +101,10 @@ def is_allowed_path(
 
     path = str(Path(path).absolute().resolve())
 
-    if forbidden_paths:
-        if path in forbidden_paths:
+    if denied_paths:
+        if path in denied_paths:
             return False
-        if any(isin(path, p) for p in forbidden_paths):
+        if any(isin(path, p) for p in denied_paths):
             return False
 
     if not allowed_paths:  # any path is allowed

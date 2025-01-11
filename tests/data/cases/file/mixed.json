@@ -1,5 +1,5 @@
 {
     "max_depth": -1,
     "allowed_paths": ["./input/package"],
-    "forbidden_paths": ["./input/package/file1.py"]
+    "denied_paths": ["./input/package/file1.py"]
 }
