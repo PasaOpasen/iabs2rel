@@ -9,7 +9,7 @@ import traceback
 
 
 from .aliases import ImportMatch, PathLike, LOGLEVEL_NAME, name_to_level
-from .utils import read_text, replace_string_parts, get_relative_path, is_allowed_path
+from .utils import read_text, write_text, replace_string_parts, get_relative_path, is_allowed_path
 
 
 _FILE_END = '.py'
@@ -57,7 +57,7 @@ class IAbs2Rel:
             return
 
         if name_to_level[level.upper()] <= lv:
-            print(f"{level} :: {message}")
+            print(f"{level.upper().ljust(7)} :: {message}")
 
     def _filter_paths(
         self,
@@ -71,7 +71,7 @@ class IAbs2Rel:
         _paths = []
         for p in (paths or []):
             t = Path(p)
-            if not p.exists():
+            if not t.exists():
                 self._verbose(
                     f"{label} path {str(p)} does not exist", 'WARNING'
                 )
@@ -133,7 +133,7 @@ class IAbs2Rel:
         self,
         i: str,
         source: Path,
-        max_depth: int = 0,
+        max_depth: int = -1,
     ) -> str:
         """resolves import from the source file"""
         if i.startswith('.'):  # already relative
@@ -166,11 +166,17 @@ class IAbs2Rel:
 
         return i_new
 
-    def file_abs2rel(
-        self,
-        file: PathLike,
-        max_depth: int = 0,
-    ) -> str:
+    def file_abs2rel(self, file: PathLike, max_depth: int = -1) -> Tuple[str, bool]:
+        """
+        converts file abs imports to relative
+        Args:
+            file:
+            max_depth: max relevance depth, -1 means unlimited
+
+        Returns:
+            - file original text or changed text
+            - flag means the text is changed
+        """
 
         file = Path(file)
         text = read_text(file)
@@ -190,7 +196,7 @@ class IAbs2Rel:
 
         if not replaces:  # nothing to change
             self._verbose('no imports to resolve', 'INFO')
-            return text
+            return text, False
 
         self._verbose(
             f"next imports will be resolved: {to_resolve}", 'DEBUG'
@@ -202,5 +208,77 @@ class IAbs2Rel:
         return replace_string_parts(
             text,
             indexes_to_part={t: i for i, t in replaces}
+        ), True
+
+    def abs2rel(self, paths: Union[PathLike, Iterable[PathLike]], max_depth: int = -1, dry_run: bool = False):
+        """
+        updates files abs imports to relative
+        Args:
+            paths: paths to python files or directories with files
+            max_depth: max relevance depth, -1 means unlimited
+            dry_run: whether to not change original files, just check for errors and produce output
+
+        """
+
+        if isinstance(paths, (str, Path)):
+            paths = [paths]
+
+        files: Set[str] = set()
+
+        for p in paths:
+            p = Path(p)
+            assert p.exists(), p
+            p = p.absolute().resolve()
+            if p.is_file():
+                assert p.suffix == '.py', p
+                files.add(str(p))
+            else:
+                py_files = [str(p) for p in p.rglob('*.py')]
+                if py_files:
+                    files.update(py_files)
+                else:
+                    self._verbose(f"no python files found in folder {str(p)}", 'WARNING')
+
+        self._verbose(f"===== processing {len(files)} *.py files =====", 'INFO')
+
+        file2text = {}
+        for f in sorted(files):
+            self._verbose(f"\t<<<< processing {f} >>>>", 'INFO')
+            text, changed = self.file_abs2rel(f, max_depth=max_depth)
+            if changed:
+                file2text[f] = text
+
+        self._verbose(
+            (
+                f"update imports in next files ({len(file2text)} from {len(files)}):\n\t" +
+                '\n\t'.join(sorted(file2text.keys()))
+            ),
+            'INFO'
         )
+        if not dry_run:
+            for f, t in file2text.items():
+                write_text(f, t)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

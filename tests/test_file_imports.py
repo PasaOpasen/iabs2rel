@@ -55,7 +55,7 @@ def test_file_abs2rel(arg_file: PathLike):
         python_path=[PROJECT_DIR], **kwargs
     )
 
-    text = resolver.file_abs2rel(
+    text, ok = resolver.file_abs2rel(
         file=DATA_DIR / 'input/p/simple2.py', **func
     )
 
