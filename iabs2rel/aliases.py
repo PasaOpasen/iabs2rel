@@ -15,10 +15,10 @@ import string + [start; end) interval in the source code string
 
 
 LOGLEVEL: TypeAlias = Literal[0, 1, 2, 3, 4]
-LOGLEVEL_NAME: TypeAlias = Literal['', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
+LOGLEVEL_NAME: TypeAlias = Literal['NO', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 
 level_to_name: Dict[LOGLEVEL, LOGLEVEL_NAME] = {
-    0: '', 1: 'ERROR', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'
+    0: 'NO', 1: 'ERROR', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'
 }
 
 
