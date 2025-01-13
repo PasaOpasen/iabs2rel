@@ -173,3 +173,8 @@ cython_debug/
 .idea
 
 tests/data/tmp
+
+
+repo-utils
+pypi.sh
+
